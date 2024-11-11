@@ -1,0 +1,395 @@
+
+
+.App {
+  text-align: center;
+}
+
+.App-logo {
+  height: 40vmin;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .App-logo {
+    animation: App-logo-spin infinite 20s linear;
+  }
+}
+
+body, html {
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden; 
+}
+
+/* this is for the first column, showing nav to different pages */
+.sidebar-nav {
+  background-color: rgb(27, 27, 27);
+  border: 1px solid white;
+  width: 200px;
+  padding: 5pt;
+  flex-shrink: 0;
+  margin: 0;
+}
+
+/* main content box home page */
+.main {
+  display: flex;
+  flex-direction: row;
+  min-height: 100vh;
+  background-color: black;
+  padding: 0;
+  width: 100vw;
+}
+
+/* the content box for right hand side */
+.content {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: black;
+  margin-top: 0px; 
+  padding: 0px; 
+}
+
+/* footer for pages */
+.page-footer {
+  position: relative;
+  padding: 20px;
+  color: whitesmoke;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  border: 1px solid white;
+  background-color: rgb(7, 7, 7);
+  width: 100%;
+  text-align: center;
+  margin-top: auto;
+}
+
+.footer p {
+  margin: 0;
+}
+
+/* removes the visited pages purple links */
+a:visited {
+  color: inherit;  
+  text-decoration: none;  
+}
+
+/* removes blue color*/
+a {
+  color: blue; 
+  text-decoration: none; 
+}
+
+.App-header {
+  display: flex;
+  background-color: #202123;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0rem;
+  top: 0;
+  width: 100%;
+  font-size: 8px;
+  color: rgb(178, 178, 178);
+}
+
+.App-link {
+  color: #61dafb;
+}
+
+@keyframes App-logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.home-style {
+  background-color: black;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+}
+
+
+.Home-Header {
+  display: flex;
+  justify-content: center;
+  background-color: rgb(18, 18, 18);
+  color: whitesmoke;
+  border: 1px cyan solid;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-size: 14px;
+  padding: 10px;
+  width: 100%;
+  text-align: center;
+}
+
+.dashboard-content-wrapper {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.Reporting-Bin, .Incident-Detail-Bin, .Incident-Manager, .Home {
+  background-color: rgb(7, 7, 7);
+  border: 1px solid rgb(0, 174, 255);
+  font-family: sans-serif;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem;
+  margin: 0.5rem 0;
+  border-radius: 2px;
+  color: beige;
+  font-size: 8px;
+  text-align: center;
+  width: 87%; 
+}
+
+.Incident-Reporter-Header, .Incident-Details-Header, .Incident-Manager-Header, .Home-Right-Header {
+  z-index: 10;
+  display: flex;
+  margin-top: 0px; 
+  margin-bottom: 0px; 
+  background-color: rgb(15, 15, 15);
+  border: 1px solid white;
+  font-size: 10px;
+  justify-content: center;
+  align-items: center;
+  padding: 0px;
+  width: 100%;
+  height: 10vh; 
+  color: white;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  text-align: center;
+}
+
+
+/* Home page stylings */
+
+.Incident-Overview-Container {
+  display: flex;
+  flex-direction: row;
+  margin-left: 10px;
+  justify-content: space-between;
+  align-items: flex-start;
+  width: 100%;
+}
+
+.Incident-Status-Overview-Container {
+  width: 50%; /* Take 50% of the parent container */
+  display: flex;
+  margin-left: 10px;
+  margin-top: 5px;
+  flex-direction: column; /* Stack vertically */
+  gap: 10px; /* Space between the boxes */
+  margin-left: 0; /* Remove any left margin */
+  align-items: stretch; /* Ensure full width and alignment */
+}
+
+.Home-Open-Incidents-Stylng,
+.Home-InProgress-Incidents-Stylng
+ {
+  margin-top: 5px;
+  padding: 10px;
+  display: block;
+  width: 90%;
+  color: white;
+  background-color: #262626;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  border: 1px solid white;
+  border-radius: 3px;
+  box-sizing: border-box;
+  flex-grow: 1;
+  margin-left: 10px;
+}
+
+.Incident-Dashboard-Home {
+  width: 90%;
+  color: white;
+  margin-top: 10px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  border: 1px solid white;
+  border-radius: 3px;
+  padding: 10px;
+  margin-right: 50px;
+}
+
+/* incident search function styling */
+
+.Incident-details-search-container {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  margin-top: 15px;
+  margin-bottom: 5px;
+  width: 90%;
+  align-items: flex-start;
+  border: 1px solid white;
+  padding: 0;
+}
+
+.Incident-details-search-container input{
+  margin-left: 0;
+  padding-left: 0;
+  width: 100%;
+  font-size: 16px;
+  padding: 10px;
+  color: white;
+  background-color: #000000;
+  border: none;
+}
+
+.Incident-details-search-function {
+  display: flex;
+  justify-content: flex-start;
+  background-color: #000000;
+  width: 90%;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: white;
+  margin: 0;
+}
+
+/* incident details styling */
+.Incident-details {
+  display: flex;
+  flex-direction: column;
+  color: white;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  width: 90%;
+  margin-top: 10px;
+  min-height: 100vh;
+}
+
+.h1-Incident-details {
+  font-size: 1vw;
+  padding-bottom: 10px;
+  border-bottom: 1px solid white;
+  border: white;
+}
+
+.h2-Incident-details {
+  font-size: 1vw;
+  background-color: #000000;
+  border-radius: 3px;
+  padding-left: 5px;
+  padding-bottom: 15px;
+  padding-top: 15px;
+  border-bottom: 1px solid white;
+}
+
+.Incident-details-crit-info-styling {
+  margin-top: 5px;
+  background-color: #171717;
+  border: 1px solid rgb(0, 174, 255);
+  color: white;
+  border-radius: 4px;
+  padding-top: 15px;
+  padding-left: 25px;
+  padding-right: 25px;
+  margin-bottom: 10px;
+}
+
+.Incident-details-more-info-styling {
+  margin-top: 10px;
+  background-color: #171717;
+  color: white;
+  border-radius: 4px;
+  padding-left: 25px;
+  padding-right: 25px;
+  margin-bottom: 10px;
+}
+
+.Incident-Dashboard-Bin {
+  display: flex;
+  justify-content: center;
+  width: 100%; 
+}
+
+.Incident-details{
+  display: flex;
+  color: aliceblue;
+}
+
+.Incident-Details-Search-Error-Handling {
+  color: white;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-size: 16px;
+}
+
+/* Incident manager styling */
+.No-Incidents-Available-styling {
+  color: white;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-size: 16px;
+  align-items: center;
+}
+
+/* miscellaneous styling objects */
+
+.white-thin-line {
+border: none;
+border-top: 1px solid white;
+margin: 8px 0;
+width: 100%;
+}
+
+
+/* intake forms for report incident */
+
+.Reporting-Incident-Container {
+  margin-top: 30px; 
+  padding: 20px;
+  background-color: #000000;
+  border-radius: 8px;
+  width: 80%; 
+}
+
+.Reporting-Incident-User-Form {
+  margin-bottom: 10px;
+  display: flex;
+  flex-direction: column;
+}
+
+.Reporting-Incident-User-Form input,
+.Reporting-Incident-User-Form textarea,
+.Reporting-Incident-User-Form select {
+  margin-top: 10px;
+  margin-bottom: 15px;
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ccc;
+  background-color: #151515;
+  color: white;
+  border-radius: 4px;
+}
+
+.Reporting-Incident-User-Form-LabelStyle {
+  color: white;
+  font-size: 12px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.Reporting-Incident-User-Form-Texboxcolor {
+  background-color: rgb(26, 26, 26);
+  color: white;
+}
+
+.Reporting-Incident-User-Form-Texboxcolor::placeholder {
+  color: white; 
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  opacity: 1;
+}  
+
+.Reporting-Incident-Submit-Button {
+  color: white;
+  background-color: #61dafb;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-size: 12px;
+  border: 1px solid #61dafb;
+  border-radius: 3px;
+}
+
