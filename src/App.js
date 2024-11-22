@@ -4,7 +4,7 @@ import Home from './Components/Home';
 import IncidentReporter from './Components/IncidentReporter';
 import IncidentDetails from './Components/IncidentDetails';
 import IncidentManager from './Components/IncidentManager';
-import Login from './Components/loginComponent'; // Import the Login component
+import Login from './Components/LoginComponent'; // Import the Login component
 
 function App() {
   // Function to check if the user is authenticated (e.g., token in localStorage)
@@ -14,7 +14,7 @@ function App() {
     <Router>
       <div>
         <Switch>
-          {/* Route for the login page */}
+          {/* Route for the Login page */}
           <Route exact path="/login" component={Login} />
 
           {/* Protected Routes */}
@@ -36,8 +36,15 @@ function App() {
             render={() => (isAuthenticated() ? <IncidentManager /> : <Redirect to="/login" />)}
           />
 
-          {/* Redirect root path to /Home */}
-          <Route exact path="/" render={() => <Redirect to={isAuthenticated() ? "/Home" : "/login"} />} />
+          {/* Default Route: Redirect to Home if authenticated, otherwise to Login */}
+          <Route
+            exact
+            path="/"
+            render={() => <Redirect to={isAuthenticated() ? '/Home' : '/login'} />}
+          />
+
+          {/* Fallback Route: Redirect unknown paths */}
+          <Route render={() => <Redirect to={isAuthenticated() ? '/Home' : '/login'} />} />
         </Switch>
       </div>
     </Router>

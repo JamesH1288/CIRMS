@@ -1,8 +1,9 @@
-require('dotenv').config(); // Load .env variables
+require('dotenv').config(); // Load environment variables
 const express = require('express');
-const db = require('./db'); // Updated DB module uses mysql2
+const db = require('./db'); // Database connection
 const jwt = require('jsonwebtoken'); // For token-based authentication
 const bcrypt = require('bcrypt'); // For password hashing
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -21,6 +22,34 @@ const authenticateToken = (req, res, next) => {
         next();
     });
 };
+
+// Route for user registration
+app.post('/api/register', async (req, res) => {
+    const { username, password, email, role } = req.body;
+
+    if (!username || !password || !email || !role) {
+        return res.status(400).json({ message: 'All fields are required.' });
+    }
+
+    try {
+        // Hash the password
+        const saltRounds = 10;
+        const hashedPassword = await bcrypt.hash(password, saltRounds);
+
+        // Insert the user into the database
+        const sql = `INSERT INTO USERS (USERNAME, PASSWORD, EMAIL, USER_ROLE) VALUES (?, ?, ?, ?)`;
+        const values = [username, hashedPassword, email, role];
+
+        db.query(sql, values, (err, result) => {
+            if (err) {
+                return res.status(500).json({ error: err.message });
+            }
+            res.status(201).json({ message: 'User registered successfully!' });
+        });
+    } catch (error) {
+        res.status(500).json({ error: 'Internal server error.' });
+    }
+});
 
 // Route for login
 app.post('/api/login', (req, res) => {
@@ -48,7 +77,7 @@ app.post('/api/login', (req, res) => {
     });
 });
 
-// Route to get all incidents (protected)
+// Example protected route to get all incidents
 app.get('/api/incidents', authenticateToken, (req, res) => {
     db.query('SELECT * FROM INCIDENTS', (err, results) => {
         if (err) {
@@ -58,41 +87,7 @@ app.get('/api/incidents', authenticateToken, (req, res) => {
     });
 });
 
-// Route to get a specific incident by ID (protected)
-app.get('/api/incidents/:id', authenticateToken, (req, res) => {
-    const { id } = req.params;
-    const sql = `
-        SELECT
-            i.INCIDENT_ID,
-            i.INCIDENT_TYPE,
-            i.OTHER_DESCRIPTION,
-            i.INCIDENT_DATE,
-            i.INCIDENT_DESCRIPTION,
-            i.AFFECTED_SYSTEMS,
-            i.IMPACT,
-            i.ACTIONS_TAKEN,
-            i.CREATED_AT,
-            i.UPDATED_AT,
-            s.STATUS_NAME,
-            u.USERNAME AS ContactName
-        FROM INCIDENTS i
-        LEFT JOIN INCIDENT_STATUS s ON i.STATUS_ID = s.STATUS_ID
-        LEFT JOIN USERS u ON i.USER_ID = u.USER_ID
-        WHERE i.INCIDENT_ID = ?;
-    `;
-
-    db.query(sql, [id], (err, result) => {
-        if (err) {
-            return res.status(500).json({ error: 'Db error' });
-        }
-        if (result.length === 0) {
-            return res.status(404).json({ error: 'Incident not found' });
-        }
-        res.json(result[0]);
-    });
-});
-
-// Route to create a new incident (protected)
+// Example protected route to create an incident
 app.post('/api/incidents', authenticateToken, (req, res) => {
     const { userId, statusId, incidentType, description, date, severity } = req.body;
     const sql = `INSERT INTO INCIDENTS (USER_ID, STATUS_ID, INCIDENT_TYPE, INCIDENT_DESCRIPTION, INCIDENT_DATE, SEVERITY) VALUES (?, ?, ?, ?, ?, ?)`;
@@ -103,32 +98,6 @@ app.post('/api/incidents', authenticateToken, (req, res) => {
             return res.status(500).json({ error: err.message });
         }
         res.json({ id: result.insertId, message: 'Incident created successfully' });
-    });
-});
-
-// Route to update an incident by ID (protected)
-app.put('/api/incidents/:id', authenticateToken, (req, res) => {
-    const { id } = req.params;
-    const { statusId, description, severity } = req.body;
-    const sql = `UPDATE INCIDENTS SET STATUS_ID = ?, INCIDENT_DESCRIPTION = ?, SEVERITY = ? WHERE INCIDENT_ID = ?`;
-    const values = [statusId, description, severity, id];
-
-    db.query(sql, values, (err) => {
-        if (err) {
-            return res.status(500).json({ error: err.message });
-        }
-        res.json({ message: 'Incident updated successfully' });
-    });
-});
-
-// Route to delete an incident by ID (protected)
-app.delete('/api/incidents/:id', authenticateToken, (req, res) => {
-    const { id } = req.params;
-    db.query('DELETE FROM INCIDENTS WHERE INCIDENT_ID = ?', [id], (err) => {
-        if (err) {
-            return res.status(500).json({ error: err.message });
-        }
-        res.json({ message: 'Incident deleted successfully' });
     });
 });
 
