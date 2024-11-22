@@ -5,7 +5,7 @@ const jwt = require('jsonwebtoken'); // For token-based authentication
 const bcrypt = require('bcrypt'); // For password hashing
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3000; // Ensure this matches your `.env` file
 
 // Middleware for parsing JSON bodies
 app.use(express.json());
@@ -37,16 +37,18 @@ app.post('/api/register', async (req, res) => {
         const hashedPassword = await bcrypt.hash(password, saltRounds);
 
         // Insert the user into the database
-        const sql = `INSERT INTO USERS (USERNAME, PASSWORD, EMAIL, USER_ROLE) VALUES (?, ?, ?, ?)`;
+        const sql = `INSERT INTO USERS (USERNAME, PASSWORD_HASH, EMAIL, USER_ROLE) VALUES (?, ?, ?, ?)`;
         const values = [username, hashedPassword, email, role];
 
         db.query(sql, values, (err, result) => {
             if (err) {
+                console.error('Database error:', err); // Log database errors
                 return res.status(500).json({ error: err.message });
             }
             res.status(201).json({ message: 'User registered successfully!' });
         });
     } catch (error) {
+        console.error('Server error:', error); // Log server errors
         res.status(500).json({ error: 'Internal server error.' });
     }
 });
@@ -64,7 +66,7 @@ app.post('/api/login', (req, res) => {
         const user = results[0];
 
         // Compare password with hashed password
-        const match = await bcrypt.compare(password, user.PASSWORD); // Assuming PASSWORD column exists
+        const match = await bcrypt.compare(password, user.PASSWORD_HASH); // Use PASSWORD_HASH column
         if (!match) return res.status(401).json({ message: 'Invalid credentials' });
 
         // Generate JWT
