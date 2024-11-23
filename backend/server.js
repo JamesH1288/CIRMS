@@ -1,18 +1,23 @@
 require('dotenv').config(); // Load environment variables
 const express = require('express');
+const cors = require('cors'); // Import CORS middleware
+const morgan = require('morgan'); // Logging middleware
 const db = require('./db'); // Database connection
 const jwt = require('jsonwebtoken'); // For token-based authentication
 const bcrypt = require('bcrypt'); // For password hashing
-const morgan = require('morgan'); // Logger for better request monitoring
 
 const app = express();
-const PORT = process.env.PORT || 3000; // Ensure this matches your `.env` file
+const PORT = process.env.PORT || 4000; // Use 4000 for backend port
 
-// Middleware for parsing JSON bodies
-app.use(express.json());
+// Enable CORS for frontend (http://localhost:3000)
+app.use(cors({
+    origin: 'http://localhost:3000', // Frontend origin
+    credentials: true, // Allow cookies and credentials
+}));
 
-// Middleware for logging HTTP requests
-app.use(morgan('dev'));
+// Middleware
+app.use(express.json()); // For parsing JSON request bodies
+app.use(morgan('dev')); // For logging HTTP requests
 
 // Middleware to authenticate JWT token
 const authenticateToken = (req, res, next) => {
@@ -26,11 +31,6 @@ const authenticateToken = (req, res, next) => {
         next();
     });
 };
-
-// Route for server health check
-app.get('/api/health', (req, res) => {
-    res.status(200).json({ status: 'Server is healthy!' });
-});
 
 // Route for user registration
 app.post('/api/register', async (req, res) => {
@@ -66,10 +66,7 @@ app.post('/api/register', async (req, res) => {
 app.post('/api/login', (req, res) => {
     const { username, password } = req.body;
 
-    if (!username || !password) {
-        return res.status(400).json({ message: 'Username and password are required.' });
-    }
-
+    // Check if user exists
     const sql = `SELECT * FROM USERS WHERE USERNAME = ?`;
     db.query(sql, [username], async (err, results) => {
         if (err) return res.status(500).json({ error: err.message });
@@ -115,9 +112,24 @@ app.post('/api/incidents', authenticateToken, (req, res) => {
     });
 });
 
-// Fallback route for undefined endpoints
-app.use((req, res, next) => {
-    res.status(404).json({ message: 'Route not found' });
+// Example protected route to get a specific incident by ID
+app.get('/api/incidents/:id', authenticateToken, (req, res) => {
+    const { id } = req.params;
+    const sql = `
+        SELECT 
+            i.INCIDENT_ID, i.INCIDENT_TYPE, i.INCIDENT_DATE, 
+            i.INCIDENT_DESCRIPTION, i.SEVERITY, i.IMPACT, 
+            i.ACTIONS_TAKEN, s.STATUS_NAME, u.USERNAME AS ContactName
+        FROM INCIDENTS i
+        LEFT JOIN INCIDENT_STATUS s ON i.STATUS_ID = s.STATUS_ID
+        LEFT JOIN USERS u ON i.USER_ID = u.USER_ID
+        WHERE i.INCIDENT_ID = ?;
+    `;
+    db.query(sql, [id], (err, results) => {
+        if (err) return res.status(500).json({ error: err.message });
+        if (results.length === 0) return res.status(404).json({ message: 'Incident not found' });
+        res.json(results[0]);
+    });
 });
 
 // Start the server
