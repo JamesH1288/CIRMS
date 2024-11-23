@@ -3,12 +3,16 @@ const express = require('express');
 const db = require('./db'); // Database connection
 const jwt = require('jsonwebtoken'); // For token-based authentication
 const bcrypt = require('bcrypt'); // For password hashing
+const morgan = require('morgan'); // Logger for better request monitoring
 
 const app = express();
 const PORT = process.env.PORT || 3000; // Ensure this matches your `.env` file
 
 // Middleware for parsing JSON bodies
 app.use(express.json());
+
+// Middleware for logging HTTP requests
+app.use(morgan('dev'));
 
 // Middleware to authenticate JWT token
 const authenticateToken = (req, res, next) => {
@@ -22,6 +26,11 @@ const authenticateToken = (req, res, next) => {
         next();
     });
 };
+
+// Route for server health check
+app.get('/api/health', (req, res) => {
+    res.status(200).json({ status: 'Server is healthy!' });
+});
 
 // Route for user registration
 app.post('/api/register', async (req, res) => {
@@ -57,7 +66,10 @@ app.post('/api/register', async (req, res) => {
 app.post('/api/login', (req, res) => {
     const { username, password } = req.body;
 
-    // Check if user exists
+    if (!username || !password) {
+        return res.status(400).json({ message: 'Username and password are required.' });
+    }
+
     const sql = `SELECT * FROM USERS WHERE USERNAME = ?`;
     db.query(sql, [username], async (err, results) => {
         if (err) return res.status(500).json({ error: err.message });
@@ -101,6 +113,11 @@ app.post('/api/incidents', authenticateToken, (req, res) => {
         }
         res.json({ id: result.insertId, message: 'Incident created successfully' });
     });
+});
+
+// Fallback route for undefined endpoints
+app.use((req, res, next) => {
+    res.status(404).json({ message: 'Route not found' });
 });
 
 // Start the server

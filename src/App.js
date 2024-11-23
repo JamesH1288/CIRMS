@@ -4,7 +4,7 @@ import Home from './Components/Home';
 import IncidentReporter from './Components/IncidentReporter';
 import IncidentDetails from './Components/IncidentDetails';
 import IncidentManager from './Components/IncidentManager';
-import Login from './Components/LoginComponent'; // Import the Login component
+import Login from './Components/loginForm'; // Import the Login component
 
 function App() {
   // Function to check if the user is authenticated (e.g., token in localStorage)
