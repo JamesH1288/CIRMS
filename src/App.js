@@ -28,8 +28,15 @@ function App() {
             render={() => (isAuthenticated() ? <IncidentReporter /> : <Redirect to="/login" />)}
           />
           <Route
+            exact
             path="/IncidentDetails"
             render={() => (isAuthenticated() ? <IncidentDetails /> : <Redirect to="/login" />)}
+          />
+          <Route
+            path="/IncidentDetails/:id"
+            render={(props) =>
+              isAuthenticated() ? <IncidentDetails {...props} /> : <Redirect to="/login" />
+            }
           />
           <Route
             path="/IncidentManager"
