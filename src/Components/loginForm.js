@@ -1,4 +1,4 @@
-import React, { useState } from "react"; // Import React and hooks
+import React, { useState } from "react"; 
 import '../App.css';
 import { useHistory } from "react-router-dom"; // For navigation
 
@@ -14,12 +14,11 @@ const LoginForm = () => {
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
 
-    // useHistory for navigation after login
     const history = useHistory();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setError(""); // Reset error message before submission
+        setError(""); 
 
         try {
             const response = await fetch(`${process.env.REACT_APP_API_URL}/api/login`, {
@@ -32,20 +31,21 @@ const LoginForm = () => {
 
             const data = await response.json();
 
+            //login responses
             if (response.ok) {
-                // Login successful
+                // for logins, successful
                 alert("Login successful!");
-                // Store token in localStorage
+                
                 localStorage.setItem("token", data.accessToken);
-                // Redirect to Home page
+                
                 history.push("/Home");
             } else {
-                // Handle login errors
+                
                 setError(data.message || "Invalid credentials. Please try again.");
             }
         } catch (err) {
-            // Handle network or unexpected errors
-            setError("An error occurred. Please try again later.");
+            
+            setError("An unexpected error occurred, please try again later.");
         }
     };
 

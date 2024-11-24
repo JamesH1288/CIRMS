@@ -11,15 +11,14 @@ function IncidentManager() {
     padding: 0,
   };
 
-  const [incidents, setIncidents] = useState([]); // List of all incidents
-  const [isEditing, setIsEditing] = useState(false); // Track if editing
-  const [currentIncident, setCurrentIncident] = useState(null); // Current incident being edited
+  const [incidents, setIncidents] = useState([]); // the list of all incidents
+  const [isEditing, setIsEditing] = useState(false); 
+  const [currentIncident, setCurrentIncident] = useState(null); 
 
-  // Fetch incidents data from the backend
   useEffect(() => {
     axios.get(`${process.env.REACT_APP_API_URL}/api/incidents`)
       .then(response => {
-        setIncidents(response.data); // Load incidents data
+        setIncidents(response.data); 
       })
       .catch(error => {
         console.error('Error fetching incidents:', error);
@@ -30,7 +29,7 @@ function IncidentManager() {
   const handleEditClick = (incidentId) => {
     const incidentToEdit = incidents.find((incident) => incident.INCIDENT_ID === incidentId);
     setCurrentIncident(incidentToEdit); 
-    setIsEditing(true); // Display the edit form
+    setIsEditing(true); 
   };
 
   // Handle form submission

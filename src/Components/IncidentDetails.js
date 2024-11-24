@@ -4,19 +4,19 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
 function IncidentDetails() {
-    const { id: initialIncidentId } = useParams(); // Use useParams for dynamic route params
-    const [incidentId, setIncidentId] = useState(initialIncidentId || ''); // Store the current incident ID
+    const { id: initialIncidentId } = useParams(); 
+    const [incidentId, setIncidentId] = useState(initialIncidentId || ''); 
     const [incident, setIncident] = useState(null);
-    const [searchId, setSearchId] = useState(''); // State for search input
+    const [searchId, setSearchId] = useState(''); 
     const [error, setError] = useState(null);
     const history = useHistory();
 
     const fetchIncidentDetails = async (id) => {
         try {
-            const token = localStorage.getItem('token'); // Retrieve token
+            const token = localStorage.getItem('token'); 
             const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/incidents/${id}`, {
                 headers: {
-                    Authorization: `Bearer ${token}`, // Pass token in the Authorization header
+                    Authorization: `Bearer ${token}`, 
                 },
             });
             setIncident(response.data);
@@ -37,8 +37,8 @@ function IncidentDetails() {
     const handleSearch = (e) => {
         e.preventDefault();
         if (searchId) {
-            setIncidentId(searchId); // Update the incident ID and fetch details
-            history.push(`/IncidentDetails/${searchId}`); // Update the URL
+            setIncidentId(searchId); 
+            history.push(`/IncidentDetails/${searchId}`); 
         }
     };
 

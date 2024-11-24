@@ -4,10 +4,10 @@ import Home from './Components/Home';
 import IncidentReporter from './Components/IncidentReporter';
 import IncidentDetails from './Components/IncidentDetails';
 import IncidentManager from './Components/IncidentManager';
-import Login from './Components/loginForm'; // Import the Login component
+import Login from './Components/loginForm'; 
 
 function App() {
-  // Function to check if the user is authenticated (e.g., token in localStorage)
+  // checks if user is authenticated
   const isAuthenticated = () => !!localStorage.getItem('token');
 
   return (
@@ -17,7 +17,6 @@ function App() {
           {/* Route for the Login page */}
           <Route exact path="/login" component={Login} />
 
-          {/* Protected Routes */}
           <Route
             exact
             path="/Home"
@@ -25,7 +24,7 @@ function App() {
           />
           <Route
             path="/IncidentReporter"
-            render={() => (isAuthenticated() ? <IncidentReporter /> : <Redirect to="/login" />)}
+            render={() => (isAuthenticated() ? <IncidentReporter/> : <Redirect to="/login" />)}
           />
           <Route
             exact
@@ -35,7 +34,7 @@ function App() {
           <Route
             path="/IncidentDetails/:id"
             render={(props) =>
-              isAuthenticated() ? <IncidentDetails {...props} /> : <Redirect to="/login" />
+              isAuthenticated() ? <IncidentDetails {...props}/> : <Redirect to="/login" />
             }
           />
           <Route
@@ -43,14 +42,13 @@ function App() {
             render={() => (isAuthenticated() ? <IncidentManager /> : <Redirect to="/login" />)}
           />
 
-          {/* Default Route: Redirect to Home if authenticated, otherwise to Login */}
+          {/* redirect to Home if authenticated, if not, redirects to Login page*/}
           <Route
             exact
             path="/"
             render={() => <Redirect to={isAuthenticated() ? '/Home' : '/login'} />}
           />
 
-          {/* Fallback Route: Redirect unknown paths */}
           <Route render={() => <Redirect to={isAuthenticated() ? '/Home' : '/login'} />} />
         </Switch>
       </div>

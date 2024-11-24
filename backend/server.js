@@ -1,28 +1,27 @@
-require('dotenv').config(); // Load environment variables
+require('dotenv').config(); 
 const express = require('express');
-const cors = require('cors'); // Import CORS middleware
-const morgan = require('morgan'); // Logging middleware
-const db = require('./db'); // Database connection
-const jwt = require('jsonwebtoken'); // For token-based authentication
-const bcrypt = require('bcrypt'); // For password hashing
+const cors = require('cors'); 
+const morgan = require('morgan'); 
+const db = require('./db'); 
+const jwt = require('jsonwebtoken'); 
+const bcrypt = require('bcrypt'); // package for hashing passwords
 
 const app = express();
-const PORT = process.env.PORT || 4000; // Use 4000 for backend port
+const PORT = process.env.PORT || 4000; 
 
-// Enable CORS for frontend (http://localhost:3000)
 app.use(cors({
-    origin: 'http://localhost:3000', // Frontend origin
-    credentials: true, // Allow cookies and credentials
+    origin: 'http://localhost:3000', 
+    credentials: true, 
 }));
 
 // Middleware
-app.use(express.json()); // For parsing JSON request bodies
-app.use(morgan('dev')); // For logging HTTP requests
+app.use(express.json()); 
+app.use(morgan('dev')); 
 
-// Middleware to authenticate JWT token
+// to authenticate the JWT token
 const authenticateToken = (req, res, next) => {
     const authHeader = req.headers['authorization'];
-    const token = authHeader && authHeader.split(' ')[1]; // Bearer token
+    const token = authHeader && authHeader.split(' ')[1]; 
     if (!token) return res.status(401).json({ message: 'Unauthorized' });
 
     jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
@@ -32,7 +31,7 @@ const authenticateToken = (req, res, next) => {
     });
 };
 
-// Route for user registration
+// a route  for user registration
 app.post('/api/register', async (req, res) => {
     const { username, password, email, role } = req.body;
 
@@ -41,23 +40,21 @@ app.post('/api/register', async (req, res) => {
     }
 
     try {
-        // Hash the password
         const saltRounds = 10;
         const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-        // Insert the user into the database
         const sql = `INSERT INTO USERS (USERNAME, PASSWORD_HASH, EMAIL, USER_ROLE) VALUES (?, ?, ?, ?)`;
         const values = [username, hashedPassword, email, role];
 
         db.query(sql, values, (err, result) => {
             if (err) {
-                console.error('Database error:', err); // Log database errors
+                console.error('Database error:', err); 
                 return res.status(500).json({ error: err.message });
             }
             res.status(201).json({ message: 'User registered successfully!' });
         });
     } catch (error) {
-        console.error('Server error:', error); // Log server errors
+        console.error('Server error:', error); 
         res.status(500).json({ error: 'Internal server error.' });
     }
 });
@@ -66,7 +63,7 @@ app.post('/api/register', async (req, res) => {
 app.post('/api/login', (req, res) => {
     const { username, password } = req.body;
 
-    // Check if user exists
+    // to check if a user exists
     const sql = `SELECT * FROM USERS WHERE USERNAME = ?`;
     db.query(sql, [username], async (err, results) => {
         if (err) return res.status(500).json({ error: err.message });
@@ -74,11 +71,9 @@ app.post('/api/login', (req, res) => {
 
         const user = results[0];
 
-        // Compare password with hashed password
-        const match = await bcrypt.compare(password, user.PASSWORD_HASH); // Use PASSWORD_HASH column
+        const match = await bcrypt.compare(password, user.PASSWORD_HASH); 
         if (!match) return res.status(401).json({ message: 'Invalid credentials' });
 
-        // Generate JWT
         const accessToken = jwt.sign(
             { id: user.USER_ID, username: user.USERNAME },
             process.env.JWT_SECRET,
@@ -88,7 +83,7 @@ app.post('/api/login', (req, res) => {
     });
 });
 
-// Example protected route to get all incidents
+//  route to get all incidents
 app.get('/api/incidents', authenticateToken, (req, res) => {
     db.query('SELECT * FROM INCIDENTS', (err, results) => {
         if (err) {
@@ -98,7 +93,6 @@ app.get('/api/incidents', authenticateToken, (req, res) => {
     });
 });
 
-// Example protected route to create an incident
 app.post('/api/incidents', authenticateToken, (req, res) => {
     const { userId, statusId, incidentType, description, date, severity } = req.body;
     const sql = `INSERT INTO INCIDENTS (USER_ID, STATUS_ID, INCIDENT_TYPE, INCIDENT_DESCRIPTION, INCIDENT_DATE, SEVERITY) VALUES (?, ?, ?, ?, ?, ?)`;
@@ -112,7 +106,7 @@ app.post('/api/incidents', authenticateToken, (req, res) => {
     });
 });
 
-// Example protected route to get a specific incident by ID
+// for getting an incident by searching for its ID
 app.get('/api/incidents/:id', authenticateToken, (req, res) => {
     const { id } = req.params;
     const sql = `
@@ -132,7 +126,6 @@ app.get('/api/incidents/:id', authenticateToken, (req, res) => {
     });
 });
 
-// Start the server
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });
