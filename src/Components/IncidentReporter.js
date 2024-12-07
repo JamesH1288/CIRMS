@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import axios from 'axios';
 import { Link, useHistory } from 'react-router-dom';
+import axios from 'axios';
 import '../App.css';
 
 function IncidentReporter() {
@@ -9,34 +9,59 @@ function IncidentReporter() {
         description: '',
         date: '',
         affectedSystems: '',
-        severity: '',
+        severity: 'Low', 
         impact: '',
         actionsTaken: '',
-        contactName: '',
-        contactEmail: '',
-        contactPhone: '',
+        otherDescription: '',
     });
 
+    const [message, setMessage] = useState(''); // success or error messages
     const history = useHistory();
 
-    //  form field changes
+    // input changes
     const handleChange = (e) => {
         const { name, value } = e.target;
         setIncident({ ...incident, [name]: value });
     };
 
-    //  form submission
-    const handleSubmit = (e) => {
+    // form submission
+    const handleSubmit = async (e) => {
         e.preventDefault();
 
-        axios.post(`${process.env.REACT_APP_API_URL}/incidents/add`, incident)
-            .then((response) => {
-                console.log(response.data);
+        const incidentPayload = {
+            userId: 1, 
+            statusId: 1, 
+            incidentType: incident.type,
+            description: incident.description,
+            date: incident.date,
+            affectedSystems: incident.affectedSystems || null,
+            severity: incident.severity,
+            impact: incident.impact || null,
+            actionsTaken: incident.actionsTaken || null,
+            otherDescription: incident.otherDescription || null,
+        };
+
+        if (!incident.type || !incident.description || !incident.date) {
+            setMessage('Please fill in all required fields: Type, Description, and Date.');
+            return;
+        }
+
+        try {
+            const response = await axios.post(
+                `${process.env.REACT_APP_API_URL}/api/incidents`,
+                incidentPayload
+            );
+            setMessage('Incident reported successfully!');
+            console.log(response.data);
+
+            // Redirects to the incident details, but waits around 2 seconds
+            setTimeout(() => {
                 history.push(`/IncidentDetails/${response.data.id}`);
-            })
-            .catch((error) => {
-                console.error('Error reporting the incident:', error);
-            });
+            }, 2000);
+        } catch (error) {
+            setMessage('Error reporting the incident. Please try again.');
+            console.error('Error:', error.response || error.message);
+        }
     };
 
     return (
@@ -47,34 +72,40 @@ function IncidentReporter() {
 
             <div className="main">
                 <div className="sidebar-nav">
+                    {/* Sidebar nav */}
                     <div className="content-wrapper">
                         <main className="Home">
                             <section>
-                                <Link to="/Home"><h2>Home</h2></Link>
+                                <Link to="/Home">
+                                    <h2>Home</h2>
+                                </Link>
                             </section>
                         </main>
                     </div>
-
                     <div className="content-wrapper">
                         <main className="Reporting-Bin">
                             <section>
-                                <Link to="/IncidentReporter"><h2>Report An Incident</h2></Link>
+                                <Link to="/IncidentReporter">
+                                    <h2>Report An Incident</h2>
+                                </Link>
                             </section>
                         </main>
                     </div>
-
                     <div className="content-wrapper">
                         <main className="Incident-Detail-Bin">
                             <section>
-                                <Link to="/IncidentDetails"><h2>Incident Details</h2></Link>
+                                <Link to="/IncidentDetails">
+                                    <h2>Incident Details</h2>
+                                </Link>
                             </section>
                         </main>
                     </div>
-
                     <div className="content-wrapper">
                         <main className="Incident-Manager">
                             <section>
-                                <Link to="/IncidentManager"><h2>Incident Manager</h2></Link>
+                                <Link to="/IncidentManager">
+                                    <h2>Incident Manager</h2>
+                                </Link>
                             </section>
                         </main>
                     </div>
@@ -89,64 +120,81 @@ function IncidentReporter() {
 
                     <div className="Reporting-Incident-Container">
                         <form className="Reporting-Incident-User-Form" onSubmit={handleSubmit}>
-                            <hr className="white-thin-line"></hr>
-
-                            <label className="Reporting-Incident-User-Form-LabelStyle">Type:</label>
-                            <select name="type" value={incident.type} onChange={handleChange}>
-                                <option>Phishing</option>
-                                <option>Social Engineering</option>
-                                <option>Malware</option>
-                                <option>Data Breach</option>
-                                <option>Denial of Service</option>
-                                <option>Unauthorized Access</option>
-                                <option>Other</option>
+                            <label>Type:</label>
+                            <select name="type" value={incident.type} onChange={handleChange} required>
+                                <option value="">Select Type</option>
+                                <option value="Phishing">Phishing</option>
+                                <option value="Social Engineering">Social Engineering</option>
+                                <option value="Malware">Malware</option>
+                                <option value="Data Breach">Data Breach</option>
+                                <option value="Denial of Service">Denial of Service</option>
+                                <option value="Unauthorized Access">Unauthorized Access</option>
+                                <option value="Other">Other</option>
                             </select>
 
-                            <textarea name="description" placeholder="Description" value={incident.description} onChange={handleChange} className="Reporting-Incident-User-Form-Texboxcolor"></textarea>
+                            <label>Description:</label>
+                            <textarea
+                                name="description"
+                                placeholder="Description"
+                                value={incident.description}
+                                onChange={handleChange}
+                                required
+                            ></textarea>
 
-                            <br></br>
-                            <hr className="white-thin-line"></hr>
-                            <br></br>
+                            <label>Date:</label>
+                            <input
+                                type="date"
+                                name="date"
+                                value={incident.date}
+                                onChange={handleChange}
+                                required
+                            />
 
-                            <label className="Reporting-Incident-User-Form-LabelStyle">Date:</label>
-                            <input type="date" name="date" value={incident.date} onChange={handleChange} />
+                            <label>Affected Systems:</label>
+                            <textarea
+                                name="affectedSystems"
+                                placeholder="Affected Systems (optional)"
+                                value={incident.affectedSystems}
+                                onChange={handleChange}
+                            ></textarea>
 
-                            <br></br>
-                            <hr className="white-thin-line"></hr>
-                            <br></br>
-
-                            <label className="Reporting-Incident-User-Form-LabelStyle">Affected Systems:</label>
-                            <textarea name="affectedSystems" placeholder="What are the affected users, systems or databases?" value={incident.affectedSystems} onChange={handleChange} className="Reporting-Incident-User-Form-Texboxcolor"></textarea>
-
-                            <label className="Reporting-Incident-User-Form-LabelStyle">Severity:</label>
+                            <label>Severity:</label>
                             <select name="severity" value={incident.severity} onChange={handleChange}>
-                                <option>Critical</option>
-                                <option>High</option>
-                                <option>Medium</option>
-                                <option>Low</option>
+                                <option value="Critical">Critical</option>
+                                <option value="High">High</option>
+                                <option value="Medium">Medium</option>
+                                <option value="Low">Low</option>
                             </select>
 
-                            <label className="Reporting-Incident-User-Form-LabelStyle">Impact:</label>
-                            <textarea name="impact" placeholder="What is the immediate impact of this incident on personnel, systems or other operations?" value={incident.impact} onChange={handleChange} className="Reporting-Incident-User-Form-Texboxcolor"></textarea>
+                            <label>Impact:</label>
+                            <textarea
+                                name="impact"
+                                placeholder="Impact (optional)"
+                                value={incident.impact}
+                                onChange={handleChange}
+                            ></textarea>
 
-                            <label className="Reporting-Incident-User-Form-LabelStyle">Immediate Actions Taken:</label>
-                            <textarea name="actionsTaken" placeholder="What actions, if any, were taken immediately to mitigate this incident?" value={incident.actionsTaken} onChange={handleChange} className="Reporting-Incident-User-Form-Texboxcolor"></textarea>
+                            <label>Actions Taken:</label>
+                            <textarea
+                                name="actionsTaken"
+                                placeholder="Actions Taken (optional)"
+                                value={incident.actionsTaken}
+                                onChange={handleChange}
+                            ></textarea>
 
-                            <br></br>
-                            <hr className="white-thin-line"></hr>
-                            <br></br>
+                            <label>Other Description:</label>
+                            <textarea
+                                name="otherDescription"
+                                placeholder="Other Description (optional)"
+                                value={incident.otherDescription}
+                                onChange={handleChange}
+                            ></textarea>
 
-                            <label className="Reporting-Incident-User-Form-LabelStyle">Contact Name:</label>
-                            <input name="contactName" value={incident.contactName} onChange={handleChange} className="Reporting-Incident-User-Form-Texboxcolor" />
-
-                            <label className="Reporting-Incident-User-Form-LabelStyle">Contact Email:</label>
-                            <input name="contactEmail" value={incident.contactEmail} onChange={handleChange} className="Reporting-Incident-User-Form-Texboxcolor" />
-
-                            <label className="Reporting-Incident-User-Form-LabelStyle">Contact Phone:</label>
-                            <input name="contactPhone" value={incident.contactPhone} onChange={handleChange} className="Reporting-Incident-User-Form-Texboxcolor" />
-
-                            <input className="Reporting-Incident-Submit-Button" type="submit" value="Report Incident" />
+                            <input type="submit" value="Report Incident" />
                         </form>
+
+                        {/* Displays success or errors */}
+                        {message && <p style={{ color: message.includes('Error') ? 'red' : 'green' }}>{message}</p>}
                     </div>
                 </div>
             </div>

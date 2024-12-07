@@ -9,14 +9,29 @@ function IncidentManager() {
     height: '100vh',
     margin: 0,
     padding: 0,
+    color: 'white',
   };
 
-  const [incidents, setIncidents] = useState([]); // the list of all incidents
+  const [incidents, setIncidents] = useState([]); //list of all incindents
   const [isEditing, setIsEditing] = useState(false); 
   const [currentIncident, setCurrentIncident] = useState(null); 
 
+  // status id int values converted to a readable text format
+  const statusMapping = {
+    1: 'Open',
+    2: 'In Progress',
+    3: 'Resolved',
+  };
+
+  // Fetching incidents
   useEffect(() => {
-    axios.get(`${process.env.REACT_APP_API_URL}/api/incidents`)
+    const token = localStorage.getItem('token'); 
+
+    axios.get(`${process.env.REACT_APP_API_URL}/api/incidents`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
       .then(response => {
         setIncidents(response.data); 
       })
@@ -25,18 +40,26 @@ function IncidentManager() {
       });
   }, []);
 
-  // Handle Edit button click
+  // Edit button click
   const handleEditClick = (incidentId) => {
     const incidentToEdit = incidents.find((incident) => incident.INCIDENT_ID === incidentId);
     setCurrentIncident(incidentToEdit); 
     setIsEditing(true); 
   };
 
-  // Handle form submission
+  //  form submission
   const handleEditSubmit = (e) => {
     e.preventDefault();
-    
-    axios.put(`${process.env.REACT_APP_API_URL}/api/incidents/${currentIncident.INCIDENT_ID}`, currentIncident)
+    const token = localStorage.getItem('token'); //for the JWT token, but not used in testing atm
+
+    axios.put(`${process.env.REACT_APP_API_URL}/api/incidents/${currentIncident.INCIDENT_ID}`, {
+      ...currentIncident,
+      STATUS_ID: parseInt(currentIncident.STATUS_ID, 10), 
+    }, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
       .then((response) => {
         const updatedIncident = response.data;
 
@@ -53,6 +76,11 @@ function IncidentManager() {
       });
   };
 
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    setCurrentIncident(null);
+  };
+
   return (
     <div style={homeStyle}> 
       <div className="Home-Header">
@@ -61,7 +89,7 @@ function IncidentManager() {
 
       {/* Main content */}
       <div className="main">
-        {/* Left-hand sidebar menu */}
+        {/* sidebar nav */}
         <div className="sidebar-nav">
           <div className="content-wrapper">
             <main className="Home">
@@ -96,7 +124,7 @@ function IncidentManager() {
           </div>
         </div>
 
-        {/* Main content div container */}
+        {/* Main content below */}
         <div className="content">
           <main className="Incident-Manager-Header">
             <section>
@@ -104,25 +132,42 @@ function IncidentManager() {
             </section>
           </main>
 
-          {/* incidents with edit buttons */}
-          <div>
+          {/* Incident list */}
+          <div className="IncidentListings">
             {incidents.length > 0 ? (
-              incidents.map(incident => (
-                <div key={incident.INCIDENT_ID}>
-                  <h3>{incident.INCIDENT_TYPE} - {incident.STATUS_NAME}</h3>
-                  <button onClick={() => handleEditClick(incident.INCIDENT_ID)}>Edit</button>
-                </div>
-              ))
+              <table className="incident-table">
+                <thead className='IncidentTable-headers'>
+                  <tr>
+                    <th className='table-fonts'>ID</th>
+                    <th className='table-fonts'>Type</th>
+                    <th className='table-fonts'>Description</th>
+                    <th className='table-fonts'>Status</th>
+                    <th className='table-fonts'>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {incidents.map((incident) => (
+                    <tr key={incident.INCIDENT_ID}>
+                      <td>{incident.INCIDENT_ID}</td>
+                      <td>{incident.INCIDENT_TYPE}</td>
+                      <td>{incident.INCIDENT_DESCRIPTION}</td>
+                      <td>{statusMapping[incident.STATUS_ID]}</td>
+                      <td>
+                        <button onClick={() => handleEditClick(incident.INCIDENT_ID)}>Edit</button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             ) : (
-              <div className='No-Incidents-Available-styling'>
-                <p>No incidents available.</p>
-              </div>
+              <p>No incidents available.</p>
             )}
           </div>
 
-          {/* edit form shown when isEditing is true */}
+          {/* Edit form below */}
           {isEditing && currentIncident && (
-            <form onSubmit={handleEditSubmit}>
+            <form onSubmit={handleEditSubmit} className="edit-form">
+              <h3>Edit Incident</h3>
               <label>Type</label>
               <input
                 type="text"
@@ -138,22 +183,24 @@ function IncidentManager() {
               
               <label>Status</label>
               <select
-                value={currentIncident.STATUS_NAME}
-                onChange={(e) => setCurrentIncident({ ...currentIncident, STATUS_NAME: e.target.value })}
+                value={currentIncident.STATUS_ID}
+                onChange={(e) => setCurrentIncident({ ...currentIncident, STATUS_ID: e.target.value })}
               >
-                <option value="Open">Open</option>
-                <option value="In Progress">In Progress</option>
-                <option value="Resolved">Resolved</option>
+                <option value="1">Open</option>
+                <option value="2">In Progress</option>
+                <option value="3">Resolved</option>
               </select>
 
-              <button type="submit">Save Changes</button>
-              <button type="button" onClick={() => setIsEditing(false)}>Cancel</button>
+              <div className="edit-buttons">
+                <button type="submit">Save Changes</button>
+                <button type="button" onClick={handleCancelEdit}>Cancel</button>
+              </div>
             </form>
           )}
         </div>
       </div>
 
-      {/* Page footer */}
+      {/* Footer */}
       <footer className="page-footer">
         <p>CIRMS System</p>
       </footer>

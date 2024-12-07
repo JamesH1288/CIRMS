@@ -122,7 +122,7 @@ function IncidentDetails() {
                                 style={{
                                     padding: '10px',
                                     fontSize: '16px',
-                                    backgroundColor: '#007bff',
+                                    backgroundColor: 'gray',
                                     color: 'white',
                                     border: 'none',
                                     borderRadius: '4px',

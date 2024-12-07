@@ -2,12 +2,16 @@ import { Link } from 'react-router-dom';
 import '../App.css';  
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, PieChart, Pie, Cell } from 'recharts';
 
 function Home() {
   const [incidents, setIncidents] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [chartData, setChartData] = useState([]);
+  const [lineChartData, setLineChartData] = useState([]);
+  const [openIncidentCount, setOpenIncidentCount] = useState(0);
+  const [inProgressIncidentCount, setInProgressIncidentCount] = useState(0);
+  const [topIncidentTypes, setTopIncidentTypes] = useState([]);
+
+  const COLORS = ['#0088FE', '#FFBB28']; // Colors for the pie chart
 
   const homeStyle = {
     backgroundColor: 'black', 
@@ -16,38 +20,70 @@ function Home() {
     padding: 0,
   };
 
-  // fetching data from the backend
+  // Helper function to format date to month-year
+  const getMonthYear = (dateString) => {
+    const date = new Date(dateString);
+    const month = date.toLocaleString('default', { month: 'short' });
+    const year = date.getFullYear();
+    return `${month} ${year}`;
+  };
+
+  // Fetching data from the backend
   useEffect(() => {
     axios.get(`${process.env.REACT_APP_API_URL}/api/incidents`)
       .then((response) => {
-        setIncidents(response.data);
-        setLoading(false);
+        const data = response.data;
 
-        // Process incidents to create chart data
-        const incidentDataByDate = response.data.reduce((acc, incident) => {
-          const date = new Date(incident.date).toLocaleDateString();
-          if (!acc[date]) {
-            acc[date] = { date: date, count: 0 };
-          }
-          acc[date].count++;
+        setIncidents(data);
+
+        // Calculate counts for Open and In Progress incidents
+        const openCount = data.filter((incident) => incident.STATUS_ID === 1).length;
+        const inProgressCount = data.filter((incident) => incident.STATUS_ID === 2).length;
+
+        const typeCounts = data.reduce((acc, incident) => {
+          acc[incident.INCIDENT_TYPE] = (acc[incident.INCIDENT_TYPE] || 0) + 1;
           return acc;
         }, {});
 
-        setChartData(Object.values(incidentDataByDate));
+        const sortedTypes = Object.entries(typeCounts)
+          .map(([type, count]) => ({ type, count }))
+          .sort((a, b) => b.count - a.count);
+
+        //  top 3 incident types
+        setTopIncidentTypes(sortedTypes.slice(0, 3));
+
+        setOpenIncidentCount(openCount);
+        setInProgressIncidentCount(inProgressCount);
+
+        // incidents by month and year
+        const aggregatedData = data.reduce((acc, incident) => {
+          if (incident.INCIDENT_DATE) {
+            const monthYear = getMonthYear(incident.INCIDENT_DATE);
+            if (!acc[monthYear]) acc[monthYear] = { month: monthYear, incidents: [] };
+            acc[monthYear].incidents.push(incident);
+          }
+          return acc;
+        }, {});
+
+        // data for the line chart 
+        const formattedLineChartData = Object.values(aggregatedData)
+          .map((entry) => ({
+            month: entry.month,
+            incidents: entry.incidents.length, 
+          }))
+          .sort((a, b) => new Date(a.month) - new Date(b.month)); 
+
+        setLineChartData(formattedLineChartData);
       })
       .catch((error) => {
-        console.error('An error has occurred fetching incidents');
-        setLoading(false);
+        console.error('Error fetching incidents:', error.response || error.message);
       });
   }, []);
 
-  // Filtering the incidents by status
-  const openIncidents = incidents.filter(incident => incident.status === 'Open');
-  const inProgressIncidents = incidents.filter(incident => incident.status === 'In Progress');
-
-  if (loading) {
-    return <div>Loading Data...</div>;
-  }
+  const pieChartData = [
+    { name: 'Open', value: openIncidentCount },
+    { name: 'In Progress', value: inProgressIncidentCount },
+  ];
 
   return (
     <div style={homeStyle}> 
@@ -57,7 +93,7 @@ function Home() {
 
       <div className="main">
         <div className="sidebar-nav">
-          {/* Sidebar Navigation */}
+          {/* Sidebar nav */}
           <div className="content-wrapper">
             <main className="Home">
               <section>
@@ -112,34 +148,76 @@ function Home() {
             <div className='Incident-Status-Overview-Container'>
               <div className='Home-Open-Incidents-Stylng'>
                 <h3>Open Incidents</h3>
-                {/* Open Incidents Table */}
+                <p>{openIncidentCount}</p>
               </div>
 
               <div className='Home-InProgress-Incidents-Stylng'>
                 <h3>In Progress Incidents</h3>
-                {/* In Progress Incidents Table */}
+                <p>{inProgressIncidentCount}</p>
+              </div>
+
+              <div className='Home-InProgress-Incidents-Stylng'>
+                <section>
+                <Link to="/IncidentManager">
+                  <h3>Manage Incidents</h3>
+                </Link>
+              </section>
+                <p></p>
               </div>
             </div>
 
             <div className="Incident-Dashboard-Home">
-              <p>Dashboard</p>
-              {chartData.length > 0 ? (
-                
-                //properties of the chart
+              <h1 className='Dashboard-Headers'>Incidents Over Time</h1>
+              {lineChartData.length > 0 ? (
                 <LineChart
-                  width={400} height={400} data={chartData}
+                  width={800}
+                  height={400}
+                  data={lineChartData}
                   margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
                 >
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="date" />
+                  <XAxis dataKey="month" />
                   <YAxis />
                   <Tooltip />
                   <Legend />
-                  <Line type="monotone" dataKey="count" stroke="#8884d8" />
+                  <Line type="monotone" dataKey="incidents" stroke="#8884d8" />
                 </LineChart>
               ) : (
                 <p>No Data Available for this Chart</p>
               )}
+
+              {/* Pie Chart */}
+              <div style={{ marginTop: '20px' }}>
+                <h1 className='Dashboard-Headers'>Incidents by Status</h1>
+                <PieChart width={400} height={400}>
+                  <Pie
+                    data={pieChartData}
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={150}
+                    fill="#8884d8"
+                    dataKey="value"
+                    label={(entry) => entry.name}
+                  >
+                    {pieChartData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
+              </div>
+
+              {/* Top three incident Types */}
+              <div className="Top-Incident-Types"style={{ marginTop: '20px' }}>
+                <h1 className='Dashboard-Headers'>Top 3 Incident Types</h1>
+                <ul>
+                  {topIncidentTypes.map((incident, index) => (
+                    <li key={index} style={{ fontSize: '18px', color: 'white', margin: '10px 0' }}>
+                      {`${incident.type}: ${incident.count} incidents`}
+                    </li>
+                  ))}
+                </ul>
+              </div>
             </div>
           </div>
         </div>
