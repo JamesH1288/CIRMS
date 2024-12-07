@@ -72,7 +72,7 @@ app.post('/api/login', (req, res) => {
         const user = results[0];
 
         const match = await bcrypt.compare(password, user.PASSWORD_HASH); 
-        if (!match) return res.status(401).json({ message: 'Invalid credentials' });
+        if (!match) return res.status(401).json({ message: 'Invalid user credentials' });
 
         const accessToken = jwt.sign(
             { id: user.USER_ID, username: user.USERNAME },
