@@ -49,7 +49,7 @@ function Home() {
           .map(([type, count]) => ({ type, count }))
           .sort((a, b) => b.count - a.count);
 
-        //  top 3 incident types
+        // top 3 incident types
         setTopIncidentTypes(sortedTypes.slice(0, 3));
 
         setOpenIncidentCount(openCount);

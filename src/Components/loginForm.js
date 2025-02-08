@@ -40,11 +40,11 @@ const LoginForm = () => {
                 
                 history.push("/Home");
             } else {
-                
+                //error handling
                 setError(data.message || "Invalid credentials. Please try again.");
             }
         } catch (err) {
-            
+            //error handling
             setError("An unexpected error occurred, please try again later.");
         }
     };

@@ -4,63 +4,45 @@ const cors = require('cors');
 const morgan = require('morgan');
 const db = require('./db');
 const jwt = require('jsonwebtoken');
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcrypt'); // password hashing algorithm library
 
 const app = express();
 const PORT = process.env.PORT || 4000;
 
+//origin addition for web hosting 
+//TODO, test deployment
 app.use(
     cors({
-        origin: 'http://localhost:3000',
+        origin: [
+            'https://seal-app-8pk3v.ondigitalocean.app',
+            'https://cirms.us',
+            'http://localhost:3000',
+        ],
+        methods: ['GET', 'POST', 'PUT', 'DELETE'],
         credentials: true,
     })
 );
 
-// Middleware
+// opt middleware
 app.use(express.json());
 app.use(morgan('dev'));
 
-// Route for user registration
-app.post('/api/register', async (req, res) => {
-    const { username, password, email, role } = req.body;
 
-    if (!username || !password || !email || !role) {
-        return res.status(400).json({ message: 'All fields are required.' });
-    }
-
-    try {
-        const saltRounds = 10;
-        const hashedPassword = await bcrypt.hash(password, saltRounds);
-
-        const sql = `INSERT INTO USERS (USERNAME, PASSWORD_HASH, EMAIL, USER_ROLE) VALUES (?, ?, ?, ?)`;
-        const values = [username, hashedPassword, email, role];
-
-        db.query(sql, values, (err) => {
-            if (err) {
-                console.error('Database error:', err);
-                return res.status(500).json({ error: 'Database error' });
-            }
-            res.status(201).json({ message: 'User registered successfully!' });
-        });
-    } catch (error) {
-        console.error('Server error:', error);
-        res.status(500).json({ error: 'Internal server error.' });
-    }
-});
-
-// Route for user login
+// for user login
 app.post('/api/login', (req, res) => {
     const { username, password } = req.body;
 
+
     if (!username || !password) {
-        return res.status(400).json({ message: 'Username and password are required.' });
+        return res.status(400).json({ message: 'Username and password are required' });
     }
 
+    //sql pull for username validation
     const sql = `SELECT * FROM USERS WHERE USERNAME = ?`;
     db.query(sql, [username], async (err, results) => {
         if (err) {
             console.error('Database error:', err);
-            return res.status(500).json({ error: 'Database error' });
+            return res.status(500).json({ error: 'Db error' }); 
         }
         if (results.length === 0) {
             return res.status(404).json({ message: 'User not found' });
@@ -69,7 +51,7 @@ app.post('/api/login', (req, res) => {
         const user = results[0];
         const match = await bcrypt.compare(password, user.PASSWORD_HASH);
         if (!match) {
-            return res.status(401).json({ message: 'Invalid credentials' });
+            return res.status(401).json({ message: 'Invalid, try again' });
         }
 
         const accessToken = jwt.sign(
@@ -81,7 +63,7 @@ app.post('/api/login', (req, res) => {
     });
 });
 
-// Route to get all incidents
+// to get all incidents
 app.get('/api/incidents', (req, res) => {
     const sql = `
         SELECT 
@@ -92,7 +74,7 @@ app.get('/api/incidents', (req, res) => {
         FROM INCIDENTS i
         LEFT JOIN USERS u ON i.USER_ID = u.USER_ID
     `;
-    db.query(sql, (err, results) => {
+    db.query(sql,(err, results) => {
         if (err) {
             return res.status(500).json({ error: 'Database error' });
         }
@@ -115,19 +97,19 @@ app.post('/api/incidents', (req, res) => {
         otherDescription = null,
     } = req.body;
 
-    // Validate required fields
+    // required fields
     if (!incidentType || !description || !date) {
         return res.status(400).json({
             error: 'Required fields: incidentType, description, and date must not be null.',
         });
     }
 
-    const sql = `
+    const sql= `
         INSERT INTO INCIDENTS 
         (USER_ID, STATUS_ID, INCIDENT_TYPE, INCIDENT_DESCRIPTION, INCIDENT_DATE, AFFECTED_SYSTEMS, SEVERITY, IMPACT, ACTIONS_TAKEN, OTHER_DESCRIPTION)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
-    const values = [
+    const values =[
         userId,
         statusId,
         incidentType,
@@ -140,6 +122,7 @@ app.post('/api/incidents', (req, res) => {
         otherDescription,
     ];
 
+    //error handling
     db.query(sql, values, (err, result) => {
         if (err) {
             console.error('Database error:', err);
@@ -149,9 +132,9 @@ app.post('/api/incidents', (req, res) => {
     });
 });
 
-// Route to get an incident by ID
+//Route to get an incident by ID
 app.get('/api/incidents/:id', (req, res) => {
-    const { id } = req.params;
+    const {id } = req.params;
     const sql = `
         SELECT 
             i.INCIDENT_ID, i.INCIDENT_TYPE, i.INCIDENT_DATE, 
@@ -169,7 +152,7 @@ app.get('/api/incidents/:id', (req, res) => {
     });
 });
 
-// Route to update an incident
+// to update an incident
 app.put('/api/incidents/:id', (req, res) => {
     const { id } = req.params;
     const { STATUS_ID, INCIDENT_TYPE, INCIDENT_DESCRIPTION } = req.body;
@@ -200,7 +183,7 @@ app.put('/api/incidents/:id', (req, res) => {
     });
 });
 
-// Route to delete an incident
+// to delete an incident
 app.delete('/api/incidents/:id', (req, res) => {
     const { id } = req.params;
     const sql = `DELETE FROM INCIDENTS WHERE INCIDENT_ID = ?`;
@@ -215,7 +198,35 @@ app.delete('/api/incidents/:id', (req, res) => {
     });
 });
 
-// Start the server
+// for user registration
+app.post('/api/register', async (req, res) => {
+    const { username, password, email, role } = req.body;
+
+    if (!username || !password || !email || !role) {
+        return res.status(400).json({ message: 'All fields are required.' });
+    }
+
+    try {
+        const saltRounds = 10;
+        const hashedPassword = await bcrypt.hash(password, saltRounds);
+
+        const sql = `INSERT INTO USERS (USERNAME, PASSWORD_HASH, EMAIL, USER_ROLE) VALUES (?, ?, ?, ?)`;
+        const values = [username, hashedPassword, email, role];
+
+        db.query(sql, values, (err) => {
+            if (err) {
+                console.error('Database error:', err);
+                return res.status(500).json({ error: 'Database error' });
+            }
+            res.status(201).json({ message: 'User registered successfully!' });
+        });
+    } catch (error) {
+        console.error('Server error:', error);
+        res.status(500).json({ error: 'Internal server error.' });
+    }
+});
+
+// Starts the server
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });
